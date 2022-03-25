@@ -23,16 +23,23 @@ public class AssertTest {
 		Assertions.assertEquals(i, i2.intValue());
 
 		Assertions.assertEquals("bola", "bola");
+		Assertions.assertNotEquals("bola", "casa");
 		Assertions.assertTrue("bola".equalsIgnoreCase("Bola"));
 		Assertions.assertTrue("bola".startsWith("bo"));
-		
+
 		Usuario u1 = new Usuario("Usuário 1");
 		Usuario u2 = new Usuario("Usuário 1");
-		Usuario u3 = u2;
-		
+		Usuario u3 = null;
+
+		// Precisa ter o Equals e Hashcode implementado
 		Assertions.assertEquals(u1, u2);
-		
-		Assertions.assertSame(u3, u2);
+
+		// Verifica em nível de instância
+		Assertions.assertSame(u2, u2);
+		Assertions.assertNotSame(u1, u2);
+
+		Assertions.assertNull(u3);
+		Assertions.assertNotNull(u2);
 	}
 
 }
