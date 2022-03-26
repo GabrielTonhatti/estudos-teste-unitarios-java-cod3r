@@ -5,14 +5,14 @@ import br.com.gabrieltonhatti.entidades.Locacao;
 import br.com.gabrieltonhatti.entidades.Usuario;
 import br.com.gabrieltonhatti.servicos.LocacaoService;
 import br.com.gabrieltonhatti.utils.DataUtils;
-import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Date;
 
-import static org.hamcrest.CoreMatchers.is;
+import static br.com.gabrieltonhatti.utils.DataUtils.isMesmaData;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @SpringBootTest
 public class LocacaoServiceTest {
@@ -29,10 +29,11 @@ public class LocacaoServiceTest {
 
         // Verificação
 
-        // Equivalente ao Assert.assertThat
-        MatcherAssert.assertThat(locacao.getValor(), is(5.0));
-        Assertions.assertTrue(DataUtils.isMesmaData(locacao.getDataLocacao(), new Date()));
-        Assertions.assertTrue(DataUtils.isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)));
+        // Equivalente ao Assert.assertThat do JUnit 4
+        assertThat(locacao.getValor(), is(equalTo(5.0)));
+        assertThat(locacao.getValor(), is(not(6.0)));
+        assertThat(isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
+        assertThat(isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)), is(true));
 
     }
 
