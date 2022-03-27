@@ -7,12 +7,23 @@ import java.util.Date;
 import br.com.gabrieltonhatti.entidades.Filme;
 import br.com.gabrieltonhatti.entidades.Locacao;
 import br.com.gabrieltonhatti.entidades.Usuario;
+import br.com.gabrieltonhatti.exceptions.FilmeSemEstoqueException;
+import br.com.gabrieltonhatti.exceptions.LocadoraException;
 
 public class LocacaoService {
 
-    public Locacao alugarFilme(Usuario usuario, Filme filme) throws Exception {
+    public Locacao alugarFilme(Usuario usuario, Filme filme) throws FilmeSemEstoqueException, LocadoraException {
+
+        if (usuario == null) {
+            throw new LocadoraException("Usuário vazio");
+        }
+
+        if (filme == null) {
+            throw new LocadoraException("Filme vazio");
+        }
+
         if (filme.getEstoque() == 0) {
-            throw new Exception("Filme sem estoque");
+            throw new FilmeSemEstoqueException();
         }
 
         Locacao locacao = new Locacao();
