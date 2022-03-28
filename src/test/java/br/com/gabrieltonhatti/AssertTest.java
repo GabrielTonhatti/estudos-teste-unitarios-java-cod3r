@@ -1,4 +1,4 @@
-package br.com.gabrieltonhatti.service;
+package br.com.gabrieltonhatti;
 
 import br.com.gabrieltonhatti.entidades.Usuario;
 import org.junit.jupiter.api.Assertions;

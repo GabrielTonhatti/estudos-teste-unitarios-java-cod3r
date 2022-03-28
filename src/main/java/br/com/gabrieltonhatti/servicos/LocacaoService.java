@@ -3,6 +3,7 @@ package br.com.gabrieltonhatti.servicos;
 import static br.com.gabrieltonhatti.utils.DataUtils.adicionarDias;
 
 import java.util.Date;
+import java.util.List;
 
 import br.com.gabrieltonhatti.entidades.Filme;
 import br.com.gabrieltonhatti.entidades.Locacao;
@@ -12,25 +13,49 @@ import br.com.gabrieltonhatti.exceptions.LocadoraException;
 
 public class LocacaoService {
 
-    public Locacao alugarFilme(Usuario usuario, Filme filme) throws FilmeSemEstoqueException, LocadoraException {
+    public Locacao alugarFilme(Usuario usuario, List<Filme> filmes) throws FilmeSemEstoqueException, LocadoraException {
 
         if (usuario == null) {
             throw new LocadoraException("Usuário vazio");
         }
 
-        if (filme == null) {
+        if (filmes == null || filmes.isEmpty()) {
             throw new LocadoraException("Filme vazio");
         }
 
-        if (filme.getEstoque() == 0) {
-            throw new FilmeSemEstoqueException();
+        for (Filme filme : filmes) {
+            if (filme.getEstoque() == 0) {
+                throw new FilmeSemEstoqueException();
+            }
         }
 
         Locacao locacao = new Locacao();
-        locacao.setFilme(filme);
+        locacao.setFilmes(filmes);
         locacao.setUsuario(usuario);
         locacao.setDataLocacao(new Date());
-        locacao.setValor(filme.getPrecoLocacao());
+        Double valorTotal = 0.0;
+        for (int i = 0; i < filmes.size(); i++) {
+            Filme filme = filmes.get(i);
+            Double valorfilme = filme.getPrecoLocacao();
+
+            switch (i) {
+                case 2:
+                    valorfilme = valorfilme * 0.75;
+                    break;
+                case 3:
+                    valorfilme = valorfilme * 0.5;
+                    break;
+                case 4:
+                    valorfilme = valorfilme * 0.25;
+                    break;
+                case 5:
+                    valorfilme = 0.0;
+            }
+
+            valorTotal += valorfilme;
+        }
+
+        locacao.setValor(valorTotal);
 
         // Entrega no dia seguinte
         Date dataEntrega = new Date();
