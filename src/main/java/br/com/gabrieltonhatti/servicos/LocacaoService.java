@@ -2,6 +2,7 @@ package br.com.gabrieltonhatti.servicos;
 
 import static br.com.gabrieltonhatti.utils.DataUtils.adicionarDias;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import br.com.gabrieltonhatti.entidades.Locacao;
 import br.com.gabrieltonhatti.entidades.Usuario;
 import br.com.gabrieltonhatti.exceptions.FilmeSemEstoqueException;
 import br.com.gabrieltonhatti.exceptions.LocadoraException;
+import br.com.gabrieltonhatti.utils.DataUtils;
 
 public class LocacaoService {
 
@@ -60,6 +62,11 @@ public class LocacaoService {
         // Entrega no dia seguinte
         Date dataEntrega = new Date();
         dataEntrega = adicionarDias(dataEntrega, 1);
+
+        if (DataUtils.verificarDiaSemana(dataEntrega, Calendar.SUNDAY)) {
+            dataEntrega = adicionarDias(dataEntrega, 1);
+        }
+
         locacao.setDataRetorno(dataEntrega);
 
         // Salvando a locacao...
