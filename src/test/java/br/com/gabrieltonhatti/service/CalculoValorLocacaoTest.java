@@ -73,10 +73,4 @@ public class CalculoValorLocacaoTest {
         Assert.assertThat(resultado.getValor(), is(valorLocacao));
 
     }
-
-    @Test
-    public void print() {
-        System.out.println(valorLocacao);
-    }
-
 }

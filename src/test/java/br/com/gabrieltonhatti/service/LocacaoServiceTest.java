@@ -17,11 +17,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import static br.com.gabrieltonhatti.matchers.MatcherProprios.*;
 import static br.com.gabrieltonhatti.utils.DataUtils.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -57,7 +57,9 @@ public class LocacaoServiceTest {
         // Verificação
         error.checkThat(locacao.getValor(), is(equalTo(5.0)));
         error.checkThat(isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
+        error.checkThat(locacao.getDataLocacao(), ehHoje());
         error.checkThat(isMesmaData(locacao.getDataRetorno(), obterDataComDiferencaDias(1)), is(true));
+         error.checkThat(locacao.getDataRetorno(), ehHojeComDiferencaDias(1));
     }
 
     // Forma elegante
@@ -113,9 +115,7 @@ public class LocacaoServiceTest {
         Locacao retorno = service.alugarFilme(usuario, filmes);
 
         // Verificação
-        boolean ehSegunda = verificarDiaSemana(retorno.getDataRetorno(), Calendar.MONDAY);
-        assertTrue(ehSegunda);
-
+        assertThat(retorno.getDataRetorno(), caiNumaSegunda());
     }
 
 }
