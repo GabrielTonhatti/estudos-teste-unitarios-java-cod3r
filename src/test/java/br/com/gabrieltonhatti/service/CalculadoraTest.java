@@ -2,6 +2,7 @@ package br.com.gabrieltonhatti.service;
 
 import br.com.gabrieltonhatti.exceptions.NaoPodeDividirPorZeroException;
 import br.com.gabrieltonhatti.servicos.Calculadora;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -61,6 +62,20 @@ public class CalculadoraTest {
 
         calc.divide(a, b);
 
+    }
+
+    @Test
+    public void deveDividir() {
+        String a = "6";
+        String b = "3";
+
+        int resultado = calc.divide(a, b);
+
+        Assert.assertEquals(2, resultado);
+    }
+
+    public static void main(String[] args) {
+        new Calculadora().divide("a", "b");
     }
 
 }

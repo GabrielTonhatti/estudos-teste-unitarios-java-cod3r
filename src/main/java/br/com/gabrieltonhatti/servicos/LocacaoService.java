@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import br.com.gabrieltonhatti.daos.LocacaoDAO;
 import br.com.gabrieltonhatti.entidades.Filme;
 import br.com.gabrieltonhatti.entidades.Locacao;
 import br.com.gabrieltonhatti.entidades.Usuario;
@@ -14,6 +15,10 @@ import br.com.gabrieltonhatti.exceptions.LocadoraException;
 import br.com.gabrieltonhatti.utils.DataUtils;
 
 public class LocacaoService {
+
+    private LocacaoDAO dao;
+    private SPCService spcService;
+    private EmailService emailService;
 
     public Locacao alugarFilme(Usuario usuario, List<Filme> filmes) throws FilmeSemEstoqueException, LocadoraException {
 
@@ -29,6 +34,10 @@ public class LocacaoService {
             if (filme.getEstoque() == 0) {
                 throw new FilmeSemEstoqueException();
             }
+        }
+
+        if (spcService.possuiNegativacao(usuario)) {
+            throw new LocadoraException("Usuário Negativado");
         }
 
         Locacao locacao = new Locacao();
@@ -70,9 +79,34 @@ public class LocacaoService {
         locacao.setDataRetorno(dataEntrega);
 
         // Salvando a locacao...
-        // TODO adicionar método para salvar
+        dao.salvar(locacao);
 
         return locacao;
+    }
+
+    public void notificarAtrasos() {
+        List<Locacao> locacoes = dao.obterLocacoesPendentes();
+
+        for (Locacao locacao : locacoes) {
+
+            if (locacao.getDataRetorno().before(new Date())) {
+                emailService.notificarAtraso(locacao.getUsuario());
+            }
+
+        }
+
+    }
+
+    public void setLocacaoDAO(LocacaoDAO dao) {
+        this.dao = dao;
+    }
+
+    public void setSPCService(SPCService spc) {
+        this.spcService = spc;
+    }
+
+    public void setEmailService(EmailService email) {
+        this.emailService = email;
     }
 
 }
