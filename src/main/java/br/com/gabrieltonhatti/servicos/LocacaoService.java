@@ -1,5 +1,6 @@
 package br.com.gabrieltonhatti.servicos;
 
+import static br.com.gabrieltonhatti.utils.DataUtils.*;
 import static br.com.gabrieltonhatti.utils.DataUtils.adicionarDias;
 
 import java.util.Calendar;
@@ -78,7 +79,7 @@ public class LocacaoService {
         Date dataEntrega = new Date();
         dataEntrega = adicionarDias(dataEntrega, 1);
 
-        if (DataUtils.verificarDiaSemana(dataEntrega, Calendar.SUNDAY)) {
+        if (verificarDiaSemana(dataEntrega, Calendar.SUNDAY)) {
             dataEntrega = adicionarDias(dataEntrega, 1);
         }
 
@@ -101,6 +102,16 @@ public class LocacaoService {
 
         }
 
+    }
+
+    public void prorrogarLocacao(Locacao locacao, int dias) {
+        Locacao novaLocacao = new Locacao();
+        novaLocacao.setUsuario(locacao.getUsuario());
+        novaLocacao.setFilmes(locacao.getFilmes());
+        novaLocacao.setDataLocacao(new Date());
+        novaLocacao.setDataRetorno(obterDataComDiferencaDias(dias));
+        novaLocacao.setValor(locacao.getValor() * dias);
+        dao.salvar(novaLocacao);
     }
 
 }

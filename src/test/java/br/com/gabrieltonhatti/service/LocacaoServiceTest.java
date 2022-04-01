@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -32,9 +33,8 @@ import static br.com.gabrieltonhatti.matchers.MatcherProprios.*;
 import static br.com.gabrieltonhatti.utils.DataUtils.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
@@ -126,9 +126,7 @@ public class LocacaoServiceTest {
     }
 
     @Test
-    public void deveDevolverNaSegundaAoAlugarNoSabado() throws FilmeSemEstoqueException, LocadoraException {
-        assumeTrue(verificarDiaSemana(new Date(), Calendar.SATURDAY));
-
+    public void deveDevolverNaSegundaAoAlugarNoSabado() throws Exception {
         // Cenário
         Usuario usuario = umUsuario().agora();
         List<Filme> filmes = List.of(umFilme().agora());
@@ -155,7 +153,7 @@ public class LocacaoServiceTest {
             // Verificação
             Assert.fail();
         } catch (LocadoraException e) {
-            Assert.assertThat(e.getMessage(), is("Usuário Negativado"));
+            assertThat(e.getMessage(), is("Usuário Negativado"));
         }
 
         verify(spc).possuiNegativacao(usuario);
@@ -217,6 +215,24 @@ public class LocacaoServiceTest {
 
         // Ação
         service.alugarFilme(usuario, filmes);
+    }
+
+    @Test
+    public void deveProrrogarUmaLocacao() {
+        // Cenário
+        Locacao locacao = umLocacao().agora();
+
+        // Ação
+        service.prorrogarLocacao(locacao, 3);
+
+        // Verificação
+        ArgumentCaptor<Locacao> argCapt = ArgumentCaptor.forClass(Locacao.class);
+        verify(dao).salvar(argCapt.capture());
+        Locacao locacaoRetornada = argCapt.getValue();
+
+        error.checkThat(locacaoRetornada.getValor(), is(12.0));
+        error.checkThat(locacaoRetornada.getDataLocacao(), ehHoje());
+        error.checkThat(locacaoRetornada.getDataRetorno(), ehHojeComDiferencaDias(3));
     }
 
 }
