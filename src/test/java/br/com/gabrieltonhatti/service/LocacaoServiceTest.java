@@ -1,6 +1,5 @@
 package br.com.gabrieltonhatti.service;
 
-import br.com.gabrieltonhatti.builders.LocacaoBuilder;
 import br.com.gabrieltonhatti.daos.LocacaoDAO;
 import br.com.gabrieltonhatti.entidades.Filme;
 import br.com.gabrieltonhatti.entidades.Locacao;
@@ -10,13 +9,15 @@ import br.com.gabrieltonhatti.exceptions.LocadoraException;
 import br.com.gabrieltonhatti.servicos.EmailService;
 import br.com.gabrieltonhatti.servicos.LocacaoService;
 import br.com.gabrieltonhatti.servicos.SPCService;
-import br.com.gabrieltonhatti.utils.DataUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Calendar;
@@ -25,7 +26,7 @@ import java.util.List;
 
 import static br.com.gabrieltonhatti.builders.FilmeBuilder.umFilme;
 import static br.com.gabrieltonhatti.builders.FilmeBuilder.umFilmeSemEstoque;
-import static br.com.gabrieltonhatti.builders.LocacaoBuilder.*;
+import static br.com.gabrieltonhatti.builders.LocacaoBuilder.umLocacao;
 import static br.com.gabrieltonhatti.builders.UsuarioBuilder.umUsuario;
 import static br.com.gabrieltonhatti.matchers.MatcherProprios.*;
 import static br.com.gabrieltonhatti.utils.DataUtils.*;
@@ -41,12 +42,16 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 public class LocacaoServiceTest {
 
+    @InjectMocks
     private LocacaoService service;
 
+    @Mock
     private SPCService spc;
 
+    @Mock
     private LocacaoDAO dao;
 
+    @Mock
     private EmailService email;
 
     @Rule
@@ -57,15 +62,7 @@ public class LocacaoServiceTest {
 
     @Before
     public void setup() {
-        this.service = new LocacaoService();
-
-        dao = mock(LocacaoDAO.class);
-        spc = mock(SPCService.class);
-        email = mock(EmailService.class);
-
-        service.setLocacaoDAO(dao);
-        service.setSPCService(spc);
-        service.setEmailService(email);
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
@@ -144,12 +141,12 @@ public class LocacaoServiceTest {
     }
 
     @Test
-    public void naoDeveAludarFilmeParaNegativadoSPC() throws FilmeSemEstoqueException {
+    public void naoDeveAludarFilmeParaNegativadoSPC() throws Exception {
         // Cenário
         Usuario usuario = umUsuario().agora();
         List<Filme> filmes = List.of(umFilme().agora());
 
-        when(spc.possuiNegativacao(usuario))
+        when(spc.possuiNegativacao(any(Usuario.class)))
                 .thenReturn(true);
 
         // Ação
@@ -169,6 +166,7 @@ public class LocacaoServiceTest {
         // Cenário
         Usuario usuario = umUsuario().agora();
         Usuario usuario2 = umUsuario().comNome("Usuario em dia").agora();
+        Usuario usuario3 = umUsuario().comNome("Outro atrasado").agora();
         List<Locacao> locacoes = List.of(
                 umLocacao()
                         .comUsuario(usuario)
@@ -176,6 +174,14 @@ public class LocacaoServiceTest {
                         .agora(),
                 umLocacao()
                         .comUsuario(usuario2)
+                        .agora(),
+                umLocacao()
+                        .comUsuario(usuario3)
+                        .atrasado()
+                        .agora(),
+                umLocacao()
+                        .comUsuario(usuario3)
+                        .atrasado()
                         .agora()
         );
 
@@ -186,7 +192,31 @@ public class LocacaoServiceTest {
         service.notificarAtrasos();
 
         // Verificação
+        verify(email, times(3)).notificarAtraso(any(Usuario.class));
         verify(email).notificarAtraso(usuario);
+        verify(email, atLeastOnce()).notificarAtraso(usuario3);
+        verify(email, never()).notificarAtraso(usuario2);
+        verifyNoMoreInteractions(email);
+        verifyNoInteractions(spc);
+    }
+
+    @Test
+    public void deveTratarErroNoSPC() throws Exception {
+        // Cenário
+        Usuario usuario = umUsuario().agora();
+        List<Filme> filmes = List.of(
+                umFilme().agora()
+        );
+
+        when(spc.possuiNegativacao(usuario))
+                .thenThrow(new Exception("Falha catastrófica"));
+
+        // Verificação
+        exception.expect(LocadoraException.class);
+        exception.expectMessage("Problemas com SPC, tente novamente");
+
+        // Ação
+        service.alugarFilme(usuario, filmes);
     }
 
 }

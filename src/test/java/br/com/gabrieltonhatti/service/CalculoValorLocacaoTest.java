@@ -13,6 +13,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Arrays;
@@ -24,11 +27,19 @@ import static br.com.gabrieltonhatti.builders.UsuarioBuilder.umUsuario;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
-import static org.mockito.Mockito.mock;
 
 @SpringBootTest
 @RunWith(Parameterized.class)
 public class CalculoValorLocacaoTest {
+
+    @InjectMocks
+    private LocacaoService service;
+
+    @Mock
+    private LocacaoDAO dao;
+
+    @Mock
+    private  SPCService spc;
 
     @Parameter
     public List<Filme> filmes;
@@ -38,8 +49,6 @@ public class CalculoValorLocacaoTest {
 
     @Parameter(value = 2)
     public String cenario;
-
-    private LocacaoService service;
 
     private static final Filme filme1 = umFilme().agora();
     private static final Filme filme2 = umFilme().agora();
@@ -51,13 +60,7 @@ public class CalculoValorLocacaoTest {
 
     @Before
     public void setup() {
-        this.service = new LocacaoService();
-
-        LocacaoDAO dao = mock(LocacaoDAO.class);
-        SPCService spc = mock(SPCService.class);
-
-        service.setLocacaoDAO(dao);
-        service.setSPCService(spc);
+        MockitoAnnotations.initMocks(this);
     }
 
     @Parameters(name = "{2}")
