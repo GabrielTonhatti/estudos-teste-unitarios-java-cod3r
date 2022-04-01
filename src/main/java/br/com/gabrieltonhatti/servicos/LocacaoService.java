@@ -50,7 +50,50 @@ public class LocacaoService {
         Locacao locacao = new Locacao();
         locacao.setFilmes(filmes);
         locacao.setUsuario(usuario);
-        locacao.setDataLocacao(new Date());
+        locacao.setDataLocacao(Calendar.getInstance().getTime());
+
+        locacao.setValor(calcularValorLocacao(filmes));
+
+        // Entrega no dia seguinte
+        Date dataEntrega = Calendar.getInstance().getTime();
+        dataEntrega = adicionarDias(dataEntrega, 1);
+
+        if (verificarDiaSemana(dataEntrega, Calendar.SUNDAY)) {
+            dataEntrega = adicionarDias(dataEntrega, 1);
+        }
+
+        locacao.setDataRetorno(dataEntrega);
+
+        // Salvando a locacao...
+        dao.salvar(locacao);
+
+        return locacao;
+    }
+
+    public void prorrogarLocacao(Locacao locacao, int dias) {
+        Locacao novaLocacao = new Locacao();
+        novaLocacao.setUsuario(locacao.getUsuario());
+        novaLocacao.setFilmes(locacao.getFilmes());
+        novaLocacao.setDataLocacao(new Date());
+        novaLocacao.setDataRetorno(obterDataComDiferencaDias(dias));
+        novaLocacao.setValor(locacao.getValor() * dias);
+        dao.salvar(novaLocacao);
+    }
+
+    public void notificarAtrasos() {
+        List<Locacao> locacoes = dao.obterLocacoesPendentes();
+
+        for (Locacao locacao : locacoes) {
+
+            if (locacao.getDataRetorno().before(new Date())) {
+                emailService.notificarAtraso(locacao.getUsuario());
+            }
+
+        }
+
+    }
+
+    private Double calcularValorLocacao(List<Filme> filmes) {
         Double valorTotal = 0.0;
         for (int i = 0; i < filmes.size(); i++) {
             Filme filme = filmes.get(i);
@@ -72,46 +115,6 @@ public class LocacaoService {
 
             valorTotal += valorfilme;
         }
-
-        locacao.setValor(valorTotal);
-
-        // Entrega no dia seguinte
-        Date dataEntrega = new Date();
-        dataEntrega = adicionarDias(dataEntrega, 1);
-
-        if (verificarDiaSemana(dataEntrega, Calendar.SUNDAY)) {
-            dataEntrega = adicionarDias(dataEntrega, 1);
-        }
-
-        locacao.setDataRetorno(dataEntrega);
-
-        // Salvando a locacao...
-        dao.salvar(locacao);
-
-        return locacao;
+        return valorTotal;
     }
-
-    public void notificarAtrasos() {
-        List<Locacao> locacoes = dao.obterLocacoesPendentes();
-
-        for (Locacao locacao : locacoes) {
-
-            if (locacao.getDataRetorno().before(new Date())) {
-                emailService.notificarAtraso(locacao.getUsuario());
-            }
-
-        }
-
-    }
-
-    public void prorrogarLocacao(Locacao locacao, int dias) {
-        Locacao novaLocacao = new Locacao();
-        novaLocacao.setUsuario(locacao.getUsuario());
-        novaLocacao.setFilmes(locacao.getFilmes());
-        novaLocacao.setDataLocacao(new Date());
-        novaLocacao.setDataRetorno(obterDataComDiferencaDias(dias));
-        novaLocacao.setValor(locacao.getValor() * dias);
-        dao.salvar(novaLocacao);
-    }
-
 }
